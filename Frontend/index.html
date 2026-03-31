@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Travel Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #080e16;
+      font-family: 'Outfit', sans-serif;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 2.5rem 0 2rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(212,167,70,0.12);
+      border: 1px solid rgba(212,167,70,0.3);
+      color: #d4a730;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero h1 span { color: #f0d080; }
+
+    .hero p {
+      font-size: 14px;
+      color: #4a6580;
+      letter-spacing: 0.04em;
+    }
+
+    .card {
+      background: #0d1824;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 2rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #4a6580;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-label::before {
+      content: '';
+      width: 16px;
+      height: 1px;
+      background: #d4a730;
+      display: inline-block;
+    }
+
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .field { position: relative; }
+
+    .field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0.75rem 1rem 0.75rem 2.6rem;
+      font-size: 14px;
+      color: #e8edf2;
+      font-family: 'Outfit', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input::placeholder { color: #2d4155; }
+
+    input:focus, select:focus {
+      border-color: rgba(212,167,70,0.4);
+      background: rgba(212,167,70,0.03);
+    }
+
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23d4a730' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    select option { background: #0d1824; color: #e8edf2; }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background: #d4a730;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #080e16;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover { background: #e6b93a; }
+    .btn:active { transform: scale(0.99); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .result-card {
+      background: #0d1824;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+
+    .result-card.full { grid-column: 1 / -1; }
+
+    .rc-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .rc-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .rc-icon.gold  { background: rgba(212,167,70,0.15); }
+    .rc-icon.blue  { background: rgba(96,165,250,0.12); }
+    .rc-icon.green { background: rgba(110,207,139,0.12); }
+    .rc-icon.pink  { background: rgba(244,114,182,0.12); }
+    .rc-icon.teal  { background: rgba(94,234,212,0.12); }
+
+    .rc-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #4a6580;
+    }
+
+    .rc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rc-list li {
+      font-size: 13px;
+      color: #7a99b5;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      border-left: 2px solid;
+    }
+
+    .gold-border  { border-color: #d4a730; }
+    .blue-border  { border-color: #60a5fa; }
+    .green-border { border-color: #6ecf8b; }
+    .pink-border  { border-color: #f472b6; }
+    .teal-border  { border-color: #5eead4; }
+
+    .empty { color: #2d4155; font-style: italic; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="hero">
+      <div class="hero-badge">✦ AI Powered</div>
+      <h1>Plan Your<br><span>Perfect Trip</span></h1>
+      <p>Discover curated experiences, stays &amp; more</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Trip Details</div>
+      <form method="POST" class="fields">
+        <div class="field">
+          <span class="field-icon">🌍</span>
+          <input type="text" name="city" placeholder="Enter destination city" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-icon">📅</span>
+            <input type="number" name="days" placeholder="Days" required>
+          </div>
+          <div class="field">
+            <span class="field-icon">🎯</span>
+            <select name="interests">
+              <option value="adventure">🧗 Adventure</option>
+              <option value="religious">🛕 Religious</option>
+              <option value="nature">🌿 Nature</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn">Plan My Journey →</button>
+      </form>
+    </div>
+
+    {% if itinerary %}
+    <div class="results-grid">
+
+      <div class="result-card full">
+        <div class="rc-header">
+          <div class="rc-icon gold">📅</div>
+          <div class="rc-title">Your Itinerary</div>
+        </div>
+        <ul class="rc-list">
+          {% for day in itinerary %}
+            <li class="gold-border">{{ day }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      {% if hotels %}
+      <div class="result-card">
+        <div class="rc-header">
+          <div class="rc-icon blue">🏨</div>
+          <div class="rc-title">Hotels &amp; Stay</div>
+        </div>
+        <ul class="rc-list">
+          {% for h in hotels %}
+            <li class="blue-border">{{ h }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if shopping %}
+      <div class="result-card">
+        <div class="rc-header">
+          <div class="rc-icon green">🛍️</div>
+          <div class="rc-title">Shopping</div>
+        </div>
+        <ul class="rc-list">
+          {% for s in shopping %}
+            <li class="green-border">{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if hospitals %}
+      <div class="result-card">
+        <div class="rc-header">
+          <div class="rc-icon pink">🏥</div>
+          <div class="rc-title">Nearby Hospitals</div>
+        </div>
+        <ul class="rc-list">
+          {% for h in hospitals %}
+            <li class="pink-border">{{ h }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if treatments %}
+      <div class="result-card">
+        <div class="rc-header">
+          <div class="rc-icon teal">💆</div>
+          <div class="rc-title">Wellness &amp; Treatment</div>
+        </div>
+        <ul class="rc-list">
+          {% for t in treatments %}
+            <li class="teal-border">{{ t }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+  </div>
+</body>
+</html>
